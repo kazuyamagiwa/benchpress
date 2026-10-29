@@ -1,9 +1,0 @@
-rule causal_automata:
-    input:
-        data = rules.data_generation.output.data
-    output:
-        "{setup}/algorithms/causal_automata/{dataset}.csv"
-    conda:
-        "env.yaml"
-    shell:
-        "python causal_automata.py --data {input.data} --output {output}"
