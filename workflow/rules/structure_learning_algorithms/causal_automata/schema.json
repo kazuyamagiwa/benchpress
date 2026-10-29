@@ -1,0 +1,86 @@
+{
+    "title": "causal_automata",
+    "description": "List of causal_automata objects. Package: https://pypi.org/project/causal-automata/",
+    "type": "array",
+    "items": {
+        "title": "causal-automata",
+        "description": "JAX-accelerated cellular automaton causal discovery (causal-automata). Parameters map to causal_automata.run / initialization helpers.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "Algorithm identifier used in benchmark_setup evaluation ids.",
+                "type": "string"
+            },
+            "ticks": {
+                "description": "Number of synchronous CA ticks (static for XLA).",
+                "$ref": "#/$defs/flexnonnegint"
+            },
+            "k": {
+                "description": "Conditioning-set size for death/birth partial correlations. null uses the package default_conditioning_k(n).",
+                "anyOf": [
+                    {
+                        "type": "null"
+                    },
+                    {
+                        "$ref": "#/$defs/flexnonnegint"
+                    }
+                ]
+            },
+            "learning_rate": {
+                "description": "Elevation learning rate.",
+                "$ref": "#/$defs/flexprob"
+            },
+            "threshold_death": {
+                "description": "Partial-correlation threshold for edge death.",
+                "$ref": "#/$defs/flexprob"
+            },
+            "threshold_birth": {
+                "description": "Partial-correlation threshold for edge birth.",
+                "$ref": "#/$defs/flexprob"
+            },
+            "skeleton_threshold": {
+                "description": "Absolute correlation threshold used to build the initial undirected skeleton.",
+                "$ref": "#/$defs/flexprob"
+            },
+            "multihop": {
+                "description": "Enable 2-hop gravity pulls.",
+                "type": "boolean"
+            },
+            "fuzzy": {
+                "description": "Keep continuous edge weights during ticks; binarize only at the end.",
+                "type": "boolean"
+            },
+            "timeout": {
+                "$ref": "#/$defs/flexnonnegnumnull"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "id",
+            "ticks",
+            "k",
+            "learning_rate",
+            "threshold_death",
+            "threshold_birth",
+            "skeleton_threshold",
+            "multihop",
+            "fuzzy",
+            "timeout"
+        ],
+        "examples": [
+            {
+                "id": "causal-automata-default",
+                "ticks": 100,
+                "k": null,
+                "learning_rate": 0.1,
+                "threshold_death": 0.05,
+                "threshold_birth": 0.15,
+                "skeleton_threshold": 0.1,
+                "multihop": false,
+                "fuzzy": false,
+                "timeout": null
+            }
+        ]
+    },
+    "uniqueItems": true
+}
