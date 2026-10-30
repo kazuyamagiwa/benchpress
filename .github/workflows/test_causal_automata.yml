@@ -116,5 +116,5 @@ jobs:
           # Container-only path: causal_automata and Benchpress data/graph rules use
           # Apptainer images (no local conda envs required for this smoke config).
           snakemake --cores 2 --use-singularity \
-            --singularity-args "--userns" \
+            --singularity-args=--userns \
             --configfile config/causal_automata_test.json
