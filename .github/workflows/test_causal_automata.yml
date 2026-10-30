@@ -100,5 +100,6 @@ jobs:
       - name: Run Snakemake End-to-End Test
         shell: bash -el {0}
         run: |
-          # Run the test pipeline using both Conda (for pipeline setup) and Apptainer (for the algorithm container)
-          snakemake --cores 2 --use-conda --use-singularity --configfile config/causal_automata_test.json
+          # Container-only path: causal_automata and Benchpress data/graph rules use
+          # Apptainer images (no local conda envs required for this smoke config).
+          snakemake --cores 2 --use-singularity --configfile config/causal_automata_test.json
