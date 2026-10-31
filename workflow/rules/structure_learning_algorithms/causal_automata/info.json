@@ -1,7 +1,7 @@
 {
     "title": "causal-automata",
     "title_full": "Causal Automata: GPU-native causal discovery via synchronous cellular automata in JAX",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "package": {
         "title": "causal-automata",
         "url": "https://pypi.org/project/causal-automata/"
