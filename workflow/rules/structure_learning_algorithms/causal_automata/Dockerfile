@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 #
 # Benchpress image for the causal-automata structure-learning module.
-# Build:  docker build -t causal_automata:0.3.2 \
+# Build:  docker build -t causal_automata:0.3.3 \
 #           -f workflow/rules/structure_learning_algorithms/causal_automata/Dockerfile .
-# Push:   docker tag causal_automata:0.3.2 <registry>/causal_automata:0.3.2
-#         docker push <registry>/causal_automata:0.3.2
+# Push:   docker tag causal_automata:0.3.3 <registry>/causal_automata:0.3.3
+#         docker push <registry>/causal_automata:0.3.3
 #
 # Uses CPU JAX for portable Singularity/Apptainer runs. For GPU hosts,
 # rebuild from a CUDA base and install causal-automata[cuda].
@@ -17,4 +17,4 @@ RUN apt-get update \
 
 RUN pip install --no-cache-dir \
         pandas \
-        "causal-automata[cpu]==0.3.2"
+        "causal-automata[cpu]==0.3.3"
