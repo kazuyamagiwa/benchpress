@@ -7,7 +7,7 @@
           "graph_id": "er_p20_d2",
           "parameters_id": "SEM",
           "data_id": "standardized_n1000",
-          "seed_range": [1, 1]
+          "seed_range": [1, 5]
         }
       ],
       "evaluation": {
@@ -22,11 +22,8 @@
           "ids": [
             "causal_automata_gpu",
             "pc_gaussian",
-            "ges_bic",
             "golem_ev",
             "notears_linear",
-            "boss",
-            "grasp",
             "iterative_mcmc"
           ]
         },
