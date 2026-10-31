@@ -71,9 +71,10 @@
           "ticks": 100,
           "k": null,
           "learning_rate": 0.1,
-          "threshold_death": 0.05,
-          "threshold_birth": 0.15,
-          "skeleton_threshold": 0.1,
+          "threshold_death": null,
+          "threshold_birth": null,
+          "skeleton_threshold": null,
+          "alpha": 0.01,
           "multihop": false,
           "fuzzy": false,
           "timeout": null

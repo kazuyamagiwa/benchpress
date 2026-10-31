@@ -3,10 +3,13 @@ cellular automaton engine for causal discovery. It evolves an adjacency matrix
 and a node elevation field under synchronous gravity / V-well / death / birth
 updates, compiled with XLA for CPU or GPU backends.
 
-This module wraps :func:`causal_automata.run` and :func:`causal_automata.binarize`.
-Continuous observational data are column-standardized, an empirical covariance
-is estimated, and the CA is initialized from a correlation skeleton with near-flat
-elevations (the package's ``corr_flat`` init mode).
+This module wraps :class:`causal_automata.CausalAutomaton` (preferred) and
+falls back to :func:`causal_automata.run` when an explicit
+``skeleton_threshold`` is set. Continuous observations are column-standardized.
+With ``threshold_death`` / ``threshold_birth`` / ``skeleton_threshold`` set to
+``null``, Fisher-z thresholds are calibrated from ``n_samples`` and ``alpha``
+(default ``0.01``), and the initial correlation skeleton is aligned to the
+calibrated birth threshold (package ``corr_flat`` init).
 
 .. rubric:: Example
 
@@ -20,9 +23,10 @@ Config snippet under ``resources.structure_learning_algorithms``:
         "ticks": 100,
         "k": null,
         "learning_rate": 0.1,
-        "threshold_death": 0.05,
-        "threshold_birth": 0.15,
-        "skeleton_threshold": 0.1,
+        "threshold_death": null,
+        "threshold_birth": null,
+        "skeleton_threshold": null,
+        "alpha": 0.01,
         "multihop": false,
         "fuzzy": false,
         "timeout": null

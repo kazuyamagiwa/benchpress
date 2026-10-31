@@ -1,0 +1,226 @@
+{
+  "benchmark_setup": [
+    {
+      "title": "codespaces_smoke",
+      "data": [
+        {
+          "graph_id": "er_p20_d2",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [1, 1]
+        }
+      ],
+      "evaluation": {
+        "benchmarks": {
+          "filename_prefix": "codespaces_smoke/",
+          "show_seed": false,
+          "errorbar": false,
+          "errorbarh": false,
+          "scatter": false,
+          "path": false,
+          "text": false,
+          "ids": [
+            "causal_automata_gpu",
+            "pc_gaussian",
+            "ges_bic",
+            "golem_ev",
+            "notears_linear",
+            "boss",
+            "grasp",
+            "iterative_mcmc"
+          ]
+        },
+        "graph_true_plots": false,
+        "graph_true_stats": false,
+        "ggally_ggpairs": false,
+        "graph_plots": [],
+        "mcmc_traj_plots": [],
+        "mcmc_heatmaps": [],
+        "mcmc_autocorr_plots": []
+      }
+    }
+  ],
+  "resources": {
+    "data": {
+      "iid": [
+        {
+          "id": "standardized_n1000",
+          "standardized": true,
+          "n": 1000
+        }
+      ]
+    },
+    "graph": {
+      "pcalg_randdag": [
+        {
+          "id": "er_p20_d2",
+          "max_parents": 5,
+          "n": 20,
+          "d": 2,
+          "par1": null,
+          "par2": null,
+          "method": "er",
+          "DAG": true
+        }
+      ]
+    },
+    "parameters": {
+      "sem_params": [
+        {
+          "id": "SEM",
+          "min": 0.25,
+          "max": 1
+        }
+      ]
+    },
+    "structure_learning_algorithms": {
+      "causal_automata": [
+        {
+          "id": "causal_automata_gpu",
+          "ticks": 50,
+          "k": 3,
+          "learning_rate": 0.1,
+          "threshold_death": null,
+          "threshold_birth": null,
+          "skeleton_threshold": null,
+          "alpha": 0.01,
+          "multihop": false,
+          "fuzzy": false,
+          "timeout": 600
+        }
+      ],
+      "pcalg_pc": [
+        {
+          "id": "pc_gaussian",
+          "alpha": 0.05,
+          "NAdelete": true,
+          "mmax": "Inf",
+          "u2pd": "relaxed",
+          "skelmethod": "stable",
+          "conservative": false,
+          "majrule": false,
+          "solveconfl": false,
+          "numCores": 1,
+          "verbose": false,
+          "indepTest": "gaussCItest",
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ],
+      "tetrad_fges": [
+        {
+          "id": "ges_bic",
+          "faithfulnessAssumed": true,
+          "score": "sem-bic-score",
+          "datatype": "continuous",
+          "samplePrior": 1,
+          "semBicStructurePrior": 1,
+          "penaltyDiscount": 1,
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ],
+      "gcastle_golem": [
+        {
+          "id": "golem_ev",
+          "lambda_1": "2e-2",
+          "lambda_2": 5.0,
+          "equal_variances": true,
+          "non_equal_variances": false,
+          "learning_rate": "1e-3",
+          "num_iter": "5e+3",
+          "checkpoint_iter": 1000,
+          "graph_thres": 0.3,
+          "device_type": "cpu",
+          "device_ids": 0,
+          "timeout": 600
+        }
+      ],
+      "gcastle_notears": [
+        {
+          "id": "notears_linear",
+          "lambda1": 0.1,
+          "loss_type": "l2",
+          "max_iter": 50,
+          "h_tol": "1e-8",
+          "rho_max": "1e+16",
+          "w_threshold": 0.1,
+          "timeout": 600
+        }
+      ],
+      "tetrad_boss": [
+        {
+          "id": "boss",
+          "score": "sem-bic-score",
+          "datatype": "continuous",
+          "samplePrior": null,
+          "useBes": true,
+          "allowInternalRandomess": false,
+          "semBicStructurePrior": 1,
+          "penaltyDiscount": 1,
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ],
+      "tetrad_grasp": [
+        {
+          "id": "grasp",
+          "score": "sem-bic-score",
+          "datatype": "continuous",
+          "test": "fisher-z-test",
+          "samplePrior": 0,
+          "semBicStructurePrior": 0,
+          "penaltyDiscount": 1,
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ],
+      "bidag_itsearch": [
+        {
+          "id": "itsample_endspace_smoke",
+          "estimate": "endspace",
+          "MAP": false,
+          "plus1it": 2,
+          "posterior": 0.5,
+          "scoretype": "bge",
+          "chi": null,
+          "edgepf": null,
+          "am": 0.1,
+          "aw": null,
+          "softlimit": 9,
+          "hardlimit": 12,
+          "alpha": 0.05,
+          "gamma": 1,
+          "cpdag": false,
+          "mergetype": "skeleton",
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ],
+      "bidag_order_mcmc": [
+        {
+          "id": "iterative_mcmc",
+          "plus1": true,
+          "input_algorithm_id": "itsample_endspace_smoke",
+          "scoretype": "bge",
+          "chi": null,
+          "edgepf": null,
+          "aw": null,
+          "am": 0.1,
+          "alpha": 0.05,
+          "gamma": 1,
+          "stepsave": null,
+          "iterations": 5000,
+          "MAP": false,
+          "cpdag": false,
+          "mcmc_seed": 1,
+          "threshold": 0.5,
+          "burnin_frac": 0.5,
+          "mcmc_estimator": "threshold",
+          "timeout": 600,
+          "edgeConstraints": null
+        }
+      ]
+    }
+  }
+}

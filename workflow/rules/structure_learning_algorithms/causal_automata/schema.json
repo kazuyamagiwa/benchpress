@@ -4,7 +4,7 @@
     "type": "array",
     "items": {
         "title": "causal-automata",
-        "description": "JAX-accelerated cellular automaton causal discovery (causal-automata). Parameters map to causal_automata.run / initialization helpers.",
+        "description": "JAX-accelerated cellular automaton causal discovery (causal-automata). Parameters map to CausalAutomaton.fit / causal_automata.run. null death/birth/skeleton thresholds enable Fisher-z calibration from n_samples.",
         "type": "object",
         "properties": {
             "id": {
@@ -31,15 +31,19 @@
                 "$ref": "#/$defs/flexprob"
             },
             "threshold_death": {
-                "description": "Partial-correlation threshold for edge death.",
-                "$ref": "#/$defs/flexprob"
+                "description": "Partial-correlation threshold for edge death. null = Fisher-z from n_samples and alpha.",
+                "$ref": "#/$defs/flexprobnull"
             },
             "threshold_birth": {
-                "description": "Partial-correlation threshold for edge birth.",
-                "$ref": "#/$defs/flexprob"
+                "description": "Partial-correlation threshold for edge birth. null = 1.2 * calibrated death threshold.",
+                "$ref": "#/$defs/flexprobnull"
             },
             "skeleton_threshold": {
-                "description": "Absolute correlation threshold used to build the initial undirected skeleton.",
+                "description": "Absolute correlation threshold for the initial undirected skeleton. null = package default (aligned with calibrated Fisher-z birth threshold via CausalAutomaton.fit).",
+                "$ref": "#/$defs/flexprobnull"
+            },
+            "alpha": {
+                "description": "Two-sided significance level for Fisher-z threshold calibration when death/birth are null (default 0.01).",
                 "$ref": "#/$defs/flexprob"
             },
             "multihop": {
@@ -63,6 +67,7 @@
             "threshold_death",
             "threshold_birth",
             "skeleton_threshold",
+            "alpha",
             "multihop",
             "fuzzy",
             "timeout"
@@ -73,9 +78,10 @@
                 "ticks": 100,
                 "k": null,
                 "learning_rate": 0.1,
-                "threshold_death": 0.05,
-                "threshold_birth": 0.15,
-                "skeleton_threshold": 0.1,
+                "threshold_death": null,
+                "threshold_birth": null,
+                "skeleton_threshold": null,
+                "alpha": 0.01,
                 "multihop": false,
                 "fuzzy": false,
                 "timeout": null

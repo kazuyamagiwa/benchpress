@@ -5,7 +5,15 @@ import time
 import numpy as np
 import pandas as pd
 from add_timeout import *
-from causal_automata import binarize, default_conditioning_k, enable_x64, run, warmup
+from causal_automata import (
+    CausalAutomaton,
+    binarize,
+    default_conditioning_k,
+    enable_x64,
+    fisher_z_threshold,
+    run,
+    warmup,
+)
 from causal_automata.bayesian_synth import (
     correlation_skeleton_adjacency,
     empirical_covariance,
@@ -19,61 +27,121 @@ def _as_bool(value):
     return str(value).lower() in {"1", "true", "yes"}
 
 
+def _is_none(value):
+    return value is None or str(value).lower() in {"none", "null", ""}
+
+
+def _optional_float(value):
+    if _is_none(value):
+        return None
+    return float(value)
+
+
 def myalg():
     """Estimate a DAG adjacency with causal-automata (JAX CA engine)."""
     print("[causal_automata] Reading input data")
     df = pd.read_csv(snakemake.input["data"])
     X = np.asarray(df.values, dtype=np.float64)
-    n_nodes = X.shape[1]
+    n_samples, n_nodes = X.shape
     print(f"[causal_automata] Data shape={X.shape}")
 
     seed = int(snakemake.wildcards["seed"])
     ticks = int(snakemake.wildcards["ticks"])
     learning_rate = float(snakemake.wildcards["learning_rate"])
-    threshold_death = float(snakemake.wildcards["threshold_death"])
-    threshold_birth = float(snakemake.wildcards["threshold_birth"])
-    skeleton_threshold = float(snakemake.wildcards["skeleton_threshold"])
+    threshold_death = _optional_float(snakemake.wildcards["threshold_death"])
+    threshold_birth = _optional_float(snakemake.wildcards["threshold_birth"])
+    skeleton_threshold = _optional_float(snakemake.wildcards["skeleton_threshold"])
     multihop = _as_bool(snakemake.wildcards["multihop"])
     fuzzy = _as_bool(snakemake.wildcards["fuzzy"])
 
+    # Fisher-z significance (default 0.01). Present in module schema/configs.
+    alpha_raw = snakemake.wildcards["alpha"]
+    alpha = 0.01 if _is_none(alpha_raw) else float(alpha_raw)
+
     k_raw = snakemake.wildcards["k"]
-    if str(k_raw).lower() in {"none", "null", ""}:
-        k = int(default_conditioning_k(n_nodes))
+    if _is_none(k_raw):
+        k = None  # CausalAutomaton / default_conditioning_k(n)
+        k_eff = int(default_conditioning_k(n_nodes))
     else:
         k = int(k_raw)
+        k_eff = k
 
     # Column-standardize continuous observations (package synth path does this for n>10).
     col_std = X.std(axis=0, ddof=0)
     col_std[col_std == 0.0] = 1.0
     X = (X - X.mean(axis=0, keepdims=True)) / col_std
 
-    Cov = empirical_covariance(X)
-    A0 = correlation_skeleton_adjacency(Cov, threshold=skeleton_threshold)
-    e_rng = np.random.default_rng(seed + 91_733)
-    E0 = flat_elevations(n_nodes, e_rng, noise=1e-4)
-
+    use_high_level = skeleton_threshold is None
     print(
         "[causal_automata] Running discovery: "
-        f"ticks={ticks}, k={k}, multihop={multihop}, fuzzy={fuzzy}"
+        f"ticks={ticks}, k={k_eff}, alpha={alpha}, "
+        f"threshold_death={threshold_death}, threshold_birth={threshold_birth}, "
+        f"skeleton_threshold={skeleton_threshold}, "
+        f"n_samples={n_samples}, api={'CausalAutomaton.fit' if use_high_level else 'run+n_samples'}, "
+        f"multihop={multihop}, fuzzy={fuzzy}"
     )
     enable_x64()
-    print(f"[causal_automata] warmup: {warmup(n=min(8, n_nodes), k=min(k, 2))}")
+    print(f"[causal_automata] warmup: {warmup(n=min(8, n_nodes), k=min(k_eff, 2))}")
 
-    import jax.numpy as jnp
+    if use_high_level:
+        # High-level API: auto n_samples from X, Fisher-z death/birth when
+        # thresholds are None, skeleton aligned to calibrated birth threshold.
+        model = CausalAutomaton(
+            ticks=ticks,
+            k=k,
+            learning_rate=learning_rate,
+            threshold_death=threshold_death,
+            threshold_birth=threshold_birth,
+            alpha=alpha,
+            multihop=multihop,
+            fuzzy=fuzzy,
+            seed=seed,
+        )
+        model.fit(X)
+        print(
+            "[causal_automata] calibrated thresholds: "
+            f"death={model.thr_death_}, birth={model.thr_birth_}"
+        )
+        adjmat = np.asarray(binarize(model.adjacency_), dtype=int)
+    else:
+        # Explicit skeleton_threshold override: low-level run with n_samples so
+        # default 0.05/0.15 sentinels still trigger Fisher-z when thresholds are null.
+        Cov = empirical_covariance(X)
+        A0 = correlation_skeleton_adjacency(Cov, threshold=skeleton_threshold)
+        e_rng = np.random.default_rng(seed + 91_733)
+        E0 = flat_elevations(n_nodes, e_rng, noise=1e-4)
 
-    A_final, _E_final = run(
-        jnp.asarray(A0),
-        jnp.asarray(E0),
-        jnp.asarray(Cov),
-        ticks=ticks,
-        k=k,
-        learning_rate=learning_rate,
-        threshold_death=threshold_death,
-        threshold_birth=threshold_birth,
-        fuzzy=fuzzy,
-        multihop=multihop,
-    )
-    adjmat = np.asarray(binarize(A_final), dtype=int)
+        if threshold_death is None:
+            thr_d = fisher_z_threshold(n_samples, k_cond=k_eff, alpha=alpha)
+        else:
+            thr_d = threshold_death
+        if threshold_birth is None:
+            thr_b = 1.2 * thr_d
+        else:
+            thr_b = threshold_birth
+        print(
+            "[causal_automata] calibrated thresholds: "
+            f"death={thr_d}, birth={thr_b}, skeleton={skeleton_threshold}"
+        )
+
+        import jax.numpy as jnp
+
+        A_final, _E_final = run(
+            jnp.asarray(A0),
+            jnp.asarray(E0),
+            jnp.asarray(Cov),
+            ticks=ticks,
+            k=k_eff,
+            learning_rate=learning_rate,
+            threshold_death=thr_d,
+            threshold_birth=thr_b,
+            n_samples=n_samples,
+            alpha=alpha,
+            fuzzy=fuzzy,
+            multihop=multihop,
+        )
+        adjmat = np.asarray(binarize(A_final), dtype=int)
+
     np.fill_diagonal(adjmat, 0)
     print(f"[causal_automata] Finished; adjmat shape={adjmat.shape}")
 
