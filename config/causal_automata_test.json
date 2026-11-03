@@ -19,7 +19,7 @@
           "scatter": false,
           "path": false,
           "text": false,
-          "ids": ["causal-automata-default"]
+          "ids": ["causal_automata"]
         },
         "graph_true_plots": false,
         "graph_true_stats": false,
@@ -67,7 +67,7 @@
     "structure_learning_algorithms": {
       "causal_automata": [
         {
-          "id": "causal-automata-default",
+          "id": "causal_automata",
           "ticks": 20,
           "k": 2,
           "learning_rate": 0.1,

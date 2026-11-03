@@ -11,6 +11,10 @@ With ``threshold_death`` / ``threshold_birth`` / ``skeleton_threshold`` set to
 (default ``0.01``), and the initial correlation skeleton is aligned to the
 calibrated birth threshold (package ``corr_flat`` init).
 
+The default Benchpress container is CPU JAX
+(``docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6``). On GPU hosts, build
+``Dockerfile.gpu`` and run Apptainer with ``--nv`` (see module ``Dockerfile.gpu``).
+
 .. rubric:: Example
 
 Config snippet under ``resources.structure_learning_algorithms``:
@@ -19,7 +23,7 @@ Config snippet under ``resources.structure_learning_algorithms``:
 
     "causal_automata": [
       {
-        "id": "causal-automata-default",
+        "id": "causal_automata",
         "ticks": 100,
         "k": null,
         "learning_rate": 0.1,
@@ -33,7 +37,7 @@ Config snippet under ``resources.structure_learning_algorithms``:
       }
     ]
 
-Local conda test (after pointing evaluation ids at ``causal-automata-default``):
+Local conda test (after pointing evaluation ids at ``causal_automata``):
 
 .. code:: bash
 

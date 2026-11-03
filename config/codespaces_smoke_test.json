@@ -20,7 +20,7 @@
           "path": false,
           "text": false,
           "ids": [
-            "causal_automata_gpu",
+            "causal_automata",
             "pc_gaussian",
             "golem_ev",
             "notears_linear",
@@ -73,7 +73,7 @@
     "structure_learning_algorithms": {
       "causal_automata": [
         {
-          "id": "causal_automata_gpu",
+          "id": "causal_automata",
           "ticks": 50,
           "k": 3,
           "learning_rate": 0.1,

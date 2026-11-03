@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1
 #
-# Benchpress image for the causal-automata structure-learning module.
+# Benchpress CPU image for the causal-automata structure-learning module.
 # Build:  docker build -t causal_automata:0.3.6 \
 #           -f workflow/rules/structure_learning_algorithms/causal_automata/Dockerfile .
 # Push:   docker tag causal_automata:0.3.6 <registry>/causal_automata:0.3.6
 #         docker push <registry>/causal_automata:0.3.6
 #
-# Uses CPU JAX for portable Singularity/Apptainer runs. For GPU hosts,
-# rebuild from a CUDA base and install causal-automata[cuda].
+# Uses CPU JAX for portable Singularity/Apptainer / upstream Benchpress runs.
+# For GPU hosts (RunPod), see Dockerfile.gpu and build with:
+#   apptainer build causal_automata_gpu.sif Dockerfile.gpu
 
 FROM python:3.10-slim-bookworm
 
