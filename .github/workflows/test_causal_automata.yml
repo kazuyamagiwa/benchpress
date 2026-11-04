@@ -41,7 +41,9 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            # Always publish :latest so rule.smk can resolve it on PR CI too.
+            # Immutable version tag matching rule.smk / Dockerfile pin.
+            type=raw,value=0.3.6
+            # Also publish :latest for convenience.
             type=raw,value=latest
 
       - name: Build and Push Docker image
