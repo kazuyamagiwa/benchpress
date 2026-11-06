@@ -11,6 +11,8 @@ causal-cmd.log
 .java/
 .cache/
 __pycache__
+okf/output/*
+!okf/output/.gitkeep
 workflow/schemas/tmp.config.schema.json
 .RData
 .Rhistory

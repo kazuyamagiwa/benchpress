@@ -49,6 +49,10 @@ You may also have a look at [this Medium story](https://medium.com/@felixleopold
 
 For problems, bug reporting, or questions please raise an issue or open a discussion thread.
 
+## Experimental OKF
+
+This repository includes a lightweight experimental [Open Knowledge Framework](okf/README.md) (`okf/`) inspired by Andrej Karpathy’s LLM Wiki pattern and Google’s Open Knowledge Format conventions. It is optional documentation/tooling for agent-maintained markdown knowledge next to the workflow — not part of the Snakemake benchmark pipeline.
+
 ## Contributing
 Contributions are very welcomed. See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions. 
 
