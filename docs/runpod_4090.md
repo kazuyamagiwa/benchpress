@@ -90,11 +90,18 @@ micromamba activate benchpress
 times on the 4090, build the CUDA image from this repo and point the rule
 at that SIF (or a GPU-tagged registry image).
 
-### Option A — local SIF from `Dockerfile.gpu` (recommended on this pod)
+### Option A — local SIF from `causal_automata_gpu.def` (recommended on this pod)
+
+Apptainer does **not** build Dockerfiles directly. Passing `Dockerfile.gpu`
+makes it treat the file as a Singularity definition, which fails with:
+
+`invalid header keyword found: from nvidia/cuda`
+
+Use the sibling definition file instead (same contents as `Dockerfile.gpu`):
 
 ```bash
 cd workflow/rules/structure_learning_algorithms/causal_automata
-apptainer build causal_automata_0.3.6_gpu.sif Dockerfile.gpu
+apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
 
 apptainer exec --nv causal_automata_0.3.6_gpu.sif \
   python -c "import jax; print(jax.devices()); import causal_automata as ca; print(ca.__version__)"
@@ -107,6 +114,14 @@ Then set the container URI in `rule.smk` to the absolute SIF path, e.g.:
 ```python
 container:
     "/workspace/benchpress/workflow/rules/structure_learning_algorithms/causal_automata/causal_automata_0.3.6_gpu.sif"
+```
+
+If you have a working Docker daemon (often **not** available inside a RunPod
+container), you can instead:
+
+```bash
+docker build -t causal_automata:0.3.6-gpu -f Dockerfile.gpu .
+apptainer build causal_automata_0.3.6_gpu.sif docker-daemon://causal_automata:0.3.6-gpu
 ```
 
 ### Option B — keep the GHCR tag
@@ -172,5 +187,6 @@ rsync -avz -e ssh results/ user@home:~/benchpress-runpod-full/
 - `config/runpod_full.json` — full benchmark config
 - `config/codespaces_smoke_test.json` — small smoke config
 - `workflow/rules/structure_learning_algorithms/causal_automata/Dockerfile.gpu`
+- `workflow/rules/structure_learning_algorithms/causal_automata/causal_automata_gpu.def`
 - `workflow/rules/structure_learning_algorithms/causal_automata/rule.smk`
 - `workflow/rules/structure_learning_algorithms/causal_automata/script.py`

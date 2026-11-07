@@ -1,0 +1,55 @@
+Bootstrap: docker
+From: nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04
+
+# Apptainer / Singularity definition mirroring Dockerfile.gpu.
+#
+# Build (from this directory):
+#   apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+#
+# Verify GPU JAX:
+#   apptainer exec --nv causal_automata_0.3.6_gpu.sif \
+#     python -c "import jax; print(jax.devices())"
+#
+# Note: plain ``apptainer build … Dockerfile.gpu`` does NOT work — Apptainer
+# treats unknown files as Singularity defs, so Docker ``FROM`` fails. Use this
+# ``.def`` on RunPod (or ``docker build`` + ``docker-daemon://`` where Docker
+# is available).
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    export PIP_NO_CACHE_DIR=1
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        software-properties-common \
+        build-essential \
+        curl \
+        ca-certificates
+    add-apt-repository -y ppa:deadsnakes/ppa
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        python3.11 \
+        python3.11-dev \
+        python3.11-venv \
+        python3-pip
+    rm -rf /var/lib/apt/lists/*
+
+    ln -sf /usr/bin/python3.11 /usr/local/bin/python
+    ln -sf /usr/bin/python3.11 /usr/local/bin/python3
+    python -m pip install --upgrade pip setuptools wheel
+
+    pip install --no-cache-dir \
+        "jax[cuda12]==0.4.38" \
+        "causal-automata==0.3.6" \
+        pandas
+
+    python -c "import importlib.metadata as m; print('causal-automata', m.version('causal-automata'))"
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export JAX_ENABLE_X64=true
+    export DEBIAN_FRONTEND=noninteractive
+    export PIP_NO_CACHE_DIR=1
+
+%runscript
+    exec python "$@"
