@@ -182,13 +182,37 @@ snakemake --cores 4 --resources gpu=1 --use-singularity \
 Confirm `causal_automata` finishes and adjmat / time files appear under
 `results/`.
 
-## 7. Full matrix (`runpod_full`)
+## 7. Full matrix
+
+### 7a. causal-automata only on this RunPod (no Apptainer) — recommended now
+
+Nested RunPod pods block Apptainer (already inside a user namespace), so
+Benchpress data-gen containers (`bpimages/pcalg`, …) cannot run here.
+Use the host-native GPU runner that mirrors the `runpod_full` matrix for
+**causal-automata only** (ER/SF, p∈{20,50,80,100}, seeds 1..10, n=1000):
+
+```bash
+cd /workspace/benchpress
+# Option C host packages must already be installed; jax.devices() must show GPU
+python -c "import jax; print(jax.devices())"
+python scripts/runpod_ca_full_host.py
+# optional subset: python scripts/runpod_ca_full_host.py --p 20 --seeds 1 2 3
+```
+
+Results: `results/runpod_ca_full_host/summary.csv` (post-warmup wall time +
+skeleton F1). Graphs are ER/SF approximations (not bit-identical to
+`pcalg::randDAG`).
+
+### 7b. Full multi-algorithm Benchpress (`runpod_full`) — needs a VM
+
+Requires working Apptainer (Jarvislabs `--vm`, etc.), not a nested RunPod pod:
 
 ```bash
 cd /workspace/benchpress
 snakemake --cores 8 --resources gpu=1 --use-singularity \
-  --singularity-args="--nv" \
   --configfile config/runpod_full.json
+# CA-only Snakemake variant (still needs Apptainer for data gen):
+#   --configfile config/runpod_ca_only.json
 ```
 
 Notes:
@@ -199,6 +223,8 @@ Notes:
   typically run on CPU unless those modules declare GPU resources.
 - Shape-matched JAX warmup in `script.py` excludes compile time from the
   recorded wall clock.
+- Do **not** pass global `--nv` / `--userns` unless you have verified
+  Apptainer exec works on that host.
 
 ## 8. Where results land
 
