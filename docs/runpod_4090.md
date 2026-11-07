@@ -83,51 +83,92 @@ micromamba activate benchpress
 
 (Or use any other host Python env that provides `snakemake ≥ 7.30`.)
 
-## 5. Build / verify the causal-automata **GPU** image
+## 5. Get a **GPU** runtime for causal-automata
 
-`rule.smk` defaults to the public immutable tag
-`docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6`. For fair GPU wall
-times on the 4090, build the CUDA image from this repo and point the rule
-at that SIF (or a GPU-tagged registry image).
+`rule.smk` defaults to `docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6`
+(often CPU JAX). On an RTX 4090 you want CUDA JAX.
 
-### Option A — local SIF from `causal_automata_gpu.def` (recommended on this pod)
+**RunPod pods are nested containers.** Apptainer `%post` often fails with:
 
-Apptainer does **not** build Dockerfiles directly. Passing `Dockerfile.gpu`
-makes it treat the file as a Singularity definition, which fails with:
+`Failed to create user namespace: … unprivileged_userns_clone`
 
-`invalid header keyword found: from nvidia/cuda`
+Try **Option A** once; if userns stays blocked, use **Option C** (recommended
+fallback on RunPod — no SIF build).
 
-Use the sibling definition file instead (same contents as `Dockerfile.gpu`):
+### Option A — build SIF from `causal_automata_gpu.def`
+
+Do **not** pass `Dockerfile.gpu` to `apptainer build` (Apptainer mis-parses
+Docker `FROM`). Use the sibling `.def`, with the setuid helper:
 
 ```bash
-cd workflow/rules/structure_learning_algorithms/causal_automata
-apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+sudo apt-get update
+sudo apt-get install -y apptainer-suid || true
 
+# May be denied inside a nested RunPod container — OK if it fails.
+sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+cd workflow/rules/structure_learning_algorithms/causal_automata
+apptainer build --fakeroot causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+```
+
+If that still dies on user namespaces, skip to **Option C**.
+
+Verify GPU JAX:
+
+```bash
 apptainer exec --nv causal_automata_0.3.6_gpu.sif \
   python -c "import jax; print(jax.devices()); import causal_automata as ca; print(ca.__version__)"
 ```
 
-You should see a `cuda` / GPU device, not only `CpuDevice`.
-
-Then set the container URI in `rule.smk` to the absolute SIF path, e.g.:
+Point `rule.smk` at the absolute SIF path:
 
 ```python
 container:
     "/workspace/benchpress/workflow/rules/structure_learning_algorithms/causal_automata/causal_automata_0.3.6_gpu.sif"
 ```
 
-If you have a working Docker daemon (often **not** available inside a RunPod
-container), you can instead:
+### Option B — pull a prebuilt GPU OCI image (no `%post`)
+
+Only if a CUDA-tagged image exists in a registry you can pull, e.g.:
 
 ```bash
-docker build -t causal_automata:0.3.6-gpu -f Dockerfile.gpu .
-apptainer build causal_automata_0.3.6_gpu.sif docker-daemon://causal_automata:0.3.6-gpu
+apptainer pull causal_automata_0.3.6_gpu.sif \
+  docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6-gpu
 ```
 
-### Option B — keep the GHCR tag
+`pull` does not run `%post`, so it avoids the userns build failure. Confirm
+`jax.devices()` shows a GPU under `apptainer exec --nv`, then point `rule.smk`
+at the SIF as in Option A.
 
-Only do this if that tag already contains JAX CUDA wheels and you have
-confirmed `jax.devices()` lists a GPU under `apptainer exec --nv`.
+### Option C — host CUDA pip (recommended RunPod fallback)
+
+Install CUDA JAX on the **pod host** (drivers already come from the RunPod
+template) and run `causal_automata` without its own container. Other
+algorithms still use Apptainer via `--use-singularity`.
+
+```bash
+# Use the same Python that Snakemake’s script: directive will call
+# (the micromamba env from step 4 is fine).
+python -m pip install -U pip
+python -m pip install --no-cache-dir \
+  "jax[cuda12]==0.4.38" \
+  "causal-automata==0.3.6" \
+  pandas
+
+python -c "import jax; print(jax.devices()); import causal_automata as ca; print(ca.__version__)"
+```
+
+You should see a CUDA device. Then comment out / remove the `container:`
+block in `rule.smk` so this rule runs on the host:
+
+```python
+# container:
+#     "docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6"
+```
+
+Keep `--use-singularity --singularity-args="--nv"` for the rest of the
+workflow; rules without `container:` execute locally.
 
 ## 6. Smoke test (optional but recommended)
 
@@ -176,9 +217,10 @@ rsync -avz -e ssh results/ user@home:~/benchpress-runpod-full/
 
 | Symptom | Likely fix |
 | --- | --- |
-| `jax.devices()` is CPU-only | Rebuild/use `Dockerfile.gpu`; pass `--nv` |
+| `jax.devices()` is CPU-only | Use Option A/C CUDA JAX; pass `--nv` for SIF exec |
 | GHCR `403` on pull | `apptainer registry logout docker://ghcr.io`; empty `DOCKER_CONFIG` |
-| Apptainer mount / userns errors | Install `apptainer-suid`; ensure fuse packages present |
+| `unprivileged_userns_clone` / `%post` fails | Install `apptainer-suid` + `--fakeroot`; if still blocked, **Option C** |
+| Apptainer mount errors | Install `apptainer-suid` + fuse packages |
 | Pod preempted (Spot) | Switch to On-Demand; keep outputs on a network volume |
 | Disk full | Grow container disk; prune old SIFs under `~/.apptainer` |
 
