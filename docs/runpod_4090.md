@@ -205,7 +205,8 @@ skeleton F1). Graphs are ER/SF approximations (not bit-identical to
 
 ### 7b. Full multi-algorithm Benchpress (`runpod_full`) — needs a VM
 
-Requires working Apptainer (Jarvislabs `--vm`, etc.), not a nested RunPod pod:
+Requires working Apptainer (Jarvislabs `--vm`, Lambda Cloud, etc.), not a
+nested RunPod pod:
 
 ```bash
 cd /workspace/benchpress
@@ -225,6 +226,34 @@ Notes:
   recorded wall clock.
 - Do **not** pass global `--nv` / `--userns` unless you have verified
   Apptainer exec works on that host.
+
+### 7c. Known-good host: Lambda Cloud A10 (2026-11-09)
+
+Nested RunPod failed Apptainer userns; the full `runpod_full` matrix for
+this fork was completed on a **Lambda Cloud** instance with native
+Apptainer + `--nv` GPU pass-through. Fingerprint for the paper / PR
+record:
+
+```text
+GPU:        NVIDIA A10, 23028 MiB, driver 580.105.08
+            UUID GPU-49da81ac-19cb-7ea6-ba81-e71e6373ca4a
+CPU:        30× Intel Xeon Platinum 8358 @ 2.60GHz
+RAM:        222 GiB
+OS/kernel:  Ubuntu 22.04 / Lambda Stack, 6.8.0-1064-nvidia
+Hostname:   159-54-176-210
+Apptainer:  1.5.5
+```
+
+Capture the same block on any new host before a paper-facing run:
+
+```bash
+nvidia-smi -L
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv
+lscpu | egrep 'Model name|CPU\(s\)|Thread|Core'
+free -h | head -2
+uname -a
+apptainer --version
+```
 
 ## 8. Where results land
 
