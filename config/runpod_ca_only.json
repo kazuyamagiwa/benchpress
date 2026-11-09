@@ -1,0 +1,223 @@
+{
+  "benchmark_setup": [
+    {
+      "title": "runpod_ca_only",
+      "data": [
+        {
+          "graph_id": "er_p20_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "er_p50_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "er_p80_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "er_p100_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "sf_p20_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "sf_p50_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "sf_p80_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        },
+        {
+          "graph_id": "sf_p100_d4",
+          "parameters_id": "SEM",
+          "data_id": "standardized_n1000",
+          "seed_range": [
+            1,
+            10
+          ]
+        }
+      ],
+      "evaluation": {
+        "benchmarks": {
+          "filename_prefix": "runpod_ca_only/",
+          "show_seed": true,
+          "errorbar": true,
+          "errorbarh": false,
+          "scatter": true,
+          "path": false,
+          "text": false,
+          "ids": [
+            "causal_automata"
+          ]
+        },
+        "graph_true_plots": false,
+        "graph_true_stats": true,
+        "ggally_ggpairs": false,
+        "graph_plots": [],
+        "mcmc_traj_plots": [],
+        "mcmc_heatmaps": [],
+        "mcmc_autocorr_plots": []
+      }
+    }
+  ],
+  "resources": {
+    "data": {
+      "iid": [
+        {
+          "id": "standardized_n1000",
+          "standardized": true,
+          "n": 1000
+        }
+      ]
+    },
+    "graph": {
+      "pcalg_randdag": [
+        {
+          "id": "er_p20_d4",
+          "max_parents": 5,
+          "n": 20,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "er",
+          "DAG": true
+        },
+        {
+          "id": "er_p50_d4",
+          "max_parents": 5,
+          "n": 50,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "er",
+          "DAG": true
+        },
+        {
+          "id": "er_p80_d4",
+          "max_parents": 5,
+          "n": 80,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "er",
+          "DAG": true
+        },
+        {
+          "id": "er_p100_d4",
+          "max_parents": 5,
+          "n": 100,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "er",
+          "DAG": true
+        },
+        {
+          "id": "sf_p20_d4",
+          "max_parents": 5,
+          "n": 20,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "power",
+          "DAG": true
+        },
+        {
+          "id": "sf_p50_d4",
+          "max_parents": 5,
+          "n": 50,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "power",
+          "DAG": true
+        },
+        {
+          "id": "sf_p80_d4",
+          "max_parents": 5,
+          "n": 80,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "power",
+          "DAG": true
+        },
+        {
+          "id": "sf_p100_d4",
+          "max_parents": 5,
+          "n": 100,
+          "d": 4,
+          "par1": null,
+          "par2": null,
+          "method": "power",
+          "DAG": true
+        }
+      ]
+    },
+    "parameters": {
+      "sem_params": [
+        {
+          "id": "SEM",
+          "min": 0.25,
+          "max": 1
+        }
+      ]
+    },
+    "structure_learning_algorithms": {
+      "causal_automata": [
+        {
+          "id": "causal_automata",
+          "ticks": 50,
+          "k": 3,
+          "learning_rate": 0.1,
+          "threshold_death": null,
+          "threshold_birth": null,
+          "skeleton_threshold": null,
+          "alpha": 0.01,
+          "multihop": false,
+          "fuzzy": false,
+          "timeout": 3600
+        }
+      ]
+    }
+  }
+}

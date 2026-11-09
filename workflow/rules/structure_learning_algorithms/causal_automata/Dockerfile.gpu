@@ -7,8 +7,15 @@
 #     -f workflow/rules/structure_learning_algorithms/causal_automata/Dockerfile.gpu .
 #
 # Apptainer / Singularity on RunPod (from this directory):
-#   apptainer build causal_automata_gpu.sif Dockerfile.gpu
-#   apptainer exec --nv causal_automata_gpu.sif python -c "import jax; print(jax.devices())"
+#   Do NOT pass Dockerfile.gpu to ``apptainer build`` — it is parsed as a
+#   Singularity def and fails on Docker ``FROM``. Use the sibling .def:
+#   apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+#   apptainer exec --nv causal_automata_0.3.6_gpu.sif \
+#     python -c "import jax; print(jax.devices())"
+#
+# Or, where a Docker daemon is available:
+#   docker build -t causal_automata:0.3.6-gpu -f Dockerfile.gpu .
+#   apptainer build causal_automata_0.3.6_gpu.sif docker-daemon://causal_automata:0.3.6-gpu
 #
 # Then point rule.smk at the GPU image / bind the SIF into the Snakemake
 # singularity cache, and run with:
