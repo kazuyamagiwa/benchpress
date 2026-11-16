@@ -45,7 +45,7 @@ causal-automata
    * - Intervention type
      - 
    * - Docker 
-     - `ghcr.io/kazuyamagiwa/causal_automata:0.3.6 <https://github.com/kazuyamagiwa/benchpress/pkgs/container/causal_automata>`__
+     - `ghcr.io/kazuyamagiwa/causal_automata:0.3.6 <https://github.com/kazuyamagiwa/benchpress/pkgs/container/causal_automata>`__ (CPU; multi-arch amd64/arm64)
 
 
 
@@ -62,8 +62,31 @@ This module wraps ``CausalAutomaton.fit`` (preferred). With
 ``threshold_death`` / ``threshold_birth`` / ``skeleton_threshold`` set to
 ``null``, Fisher-z thresholds are calibrated from sample size and ``alpha``.
 
-The published Benchpress container is CPU JAX. For GPU hosts, build the module
-``Dockerfile.gpu`` and run with Apptainer ``--nv``.
+The published Benchpress container is **CPU JAX**
+(``docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6``, multi-arch
+``linux/amd64`` + ``linux/arm64``). The module is container-only (no conda
+``env.yaml``).
+
+.. rubric:: GPU / Apptainer
+
+On NVIDIA hosts, build a GPU image from the module directory. Prefer the
+Apptainer definition ``causal_automata_gpu.def`` (do **not** pass
+``Dockerfile.gpu`` to ``apptainer build``):
+
+.. code:: bash
+
+    cd workflow/rules/structure_learning_algorithms/causal_automata
+    apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+    apptainer exec --nv causal_automata_0.3.6_gpu.sif \
+      python -c "import jax; print(jax.devices())"
+
+Then run Snakemake with ``--use-singularity --singularity-args="--nv"`` and
+``--resources gpu=1`` as needed. ``Dockerfile.gpu`` is the Docker-equivalent
+recipe.
+
+This path was validated with Apptainer ``--nv`` on an NVIDIA A10 (JAX
+``CudaDevice``; module smoke OK). Some nested-container hosts block
+unprivileged image builds; build the SIF elsewhere or reuse a pre-built SIF.
 
 .. rubric:: Example 
 

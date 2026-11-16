@@ -11,9 +11,41 @@ With ``threshold_death`` / ``threshold_birth`` / ``skeleton_threshold`` set to
 (default ``0.01``), and the initial correlation skeleton is aligned to the
 calibrated birth threshold (package ``corr_flat`` init).
 
-The default Benchpress container is CPU JAX
-(``docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6``). On GPU hosts, build
-``Dockerfile.gpu`` and run Apptainer with ``--nv`` (see module ``Dockerfile.gpu``).
+The default Benchpress container is **CPU JAX** (multi-arch
+``linux/amd64`` + ``linux/arm64``)::
+
+    docker://ghcr.io/kazuyamagiwa/causal_automata:0.3.6
+
+This module is **container-only** (no ``env.yaml`` / conda env). Use
+``--use-singularity`` (or Docker) as in the smoke command below.
+
+.. rubric:: GPU / Apptainer
+
+``rule.smk`` pins the CPU image above. On NVIDIA hosts, build a **GPU**
+image from the files in this directory (do **not** pass ``Dockerfile.gpu``
+directly to ``apptainer build`` — Docker ``FROM`` is mis-parsed as a
+Singularity definition):
+
+.. code:: bash
+
+    cd workflow/rules/structure_learning_algorithms/causal_automata
+    apptainer build causal_automata_0.3.6_gpu.sif causal_automata_gpu.def
+    apptainer exec --nv causal_automata_0.3.6_gpu.sif \
+      python -c "import jax; print(jax.devices())"
+    # expect CudaDevice(...) on a working GPU host
+
+Equivalent Docker build (then convert with ``apptainer build … docker-daemon://…``
+if desired): ``Dockerfile.gpu``.
+
+Run Benchpress with GPU passthrough, e.g.::
+
+    snakemake --cores N --resources gpu=1 --use-singularity \
+      --singularity-args="--nv" --configfile … 
+
+**Validated:** Apptainer ``--nv`` + the GPU SIF on an NVIDIA A10 (JAX reported
+``CudaDevice``; module smoke completed). Nested-userns hosts (some RunPod
+images) may block unprivileged ``apptainer build``; build the SIF on a normal
+Linux GPU box or use a pre-built SIF.
 
 .. rubric:: Example
 
@@ -37,8 +69,9 @@ Config snippet under ``resources.structure_learning_algorithms``:
       }
     ]
 
-Local conda test (after pointing evaluation ids at ``causal_automata``):
+Smoke (CPU container via Singularity/Apptainer):
 
 .. code:: bash
 
-    snakemake --cores all --use-conda --configfile config/causal_automata_test.json
+    snakemake --cores all --use-singularity \
+      --configfile workflow/rules/structure_learning_algorithms/causal_automata/causal_automata.json
